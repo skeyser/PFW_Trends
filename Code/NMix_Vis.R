@@ -38,13 +38,13 @@ library(MCMCvis)
 dat <- readRDS(here("Data/NMix_Input/PFW_CA_OR_LESGOL_Ragged.RDS"))
 Sites <- dat$SiteYr
 SiteInd <- dat$siteyr_ind
-samp <- readRDS(here("Data/NMix_Output/PFW_CA_OR_LESGOL_Test.rds"))
+samp <- readRDS(here("Data/NMix_Output/PFW_CA_OR_LESGOL_Test_Dmt.rds"))
 
 ## Convert the chains into a list
 mcmc_list <- mcmc.list(
-  mcmc(samp$chain1), 
-  mcmc(samp$chain2), 
-  mcmc(samp$chain3)
+  mcmc(samp$samples$chain1), 
+  mcmc(samp$samples$chain2), 
+  mcmc(samp$samples$chain3)
 )
 
 ## Remove samples
@@ -79,6 +79,8 @@ convergence_check <- function(x,
 ## Check parameter convergence
 convergence_check(x = mcmc_list, params = "alpha_snow", ISB = F)
 convergence_check(x = mcmc_list, params = "alpha_eff", ISB = F)
+convergence_check(x = mcmc_list, params = "alpha_tmin", ISB = F)
+convergence_check(x = mcmc_list, params = "alpha_prcp", ISB = F)
 convergence_check(x = mcmc_list, params = "beta0")
 convergence_check(x = mcmc_list, params = "beta1")
 convergence_check(x = mcmc_list, params = "eps", ISB = F)
@@ -102,6 +104,19 @@ MCMCvis::MCMCtrace(mcmc_list,
                    n.eff = T,
                    Rhat = T,
                    pdf = F)
+
+MCMCvis::MCMCtrace(mcmc_list,
+                   params = "alpha_tmin",
+                   n.eff = T,
+                   Rhat = T,
+                   pdf = F)
+
+MCMCvis::MCMCtrace(mcmc_list,
+                   params = "alpha_prcp",
+                   n.eff = T,
+                   Rhat = T,
+                   pdf = F)
+
 
 MCMCvis::MCMCtrace(mcmc_list,
                    params = "beta0",
@@ -208,7 +223,7 @@ year_effect_summary[, calendar_year := first_year + year]
 
 year_effect_summary
 
-lesgo_tr <- ggplot(year_effect_summary, aes(x = calendar_year, y = median)) +
+lesgo_tr <- ggplot(year_effect_summary, aes(x = year, y = median)) +
   geom_ribbon(
     aes(ymin = lower, ymax = upper),
     fill = "darkgreen",
@@ -230,7 +245,7 @@ lesgo_tr <- ggplot(year_effect_summary, aes(x = calendar_year, y = median)) +
   ) +
   theme_bw()
 
-lesgo_tr_rl <- ggplot(year_effect_summary, aes(x = calendar_year, y = rlmedian-1)) +
+lesgo_tr_rl <- ggplot(year_effect_summary, aes(x = year, y = rlmedian-1)) +
   geom_ribbon(
     aes(ymin = rllower-1, ymax = rlupper-1),
     fill = "darkgreen",
