@@ -59,16 +59,10 @@ fw_nmix <- nimbleCode({
   sd.eps.loc ~ dunif(0, 2)
   tau.eps.loc <- pow(sd.eps.loc, -2)
   
-  ## Site-level obs raneff
-  # for(t in 1:nSiteYr){
-  #   eps.obs[t] ~ dnorm(0, tau.eps.obs)
-  # }
-  # sd.eps.obs ~ dunif(0, 2)
-  # tau.eps.obs <- pow(sd.eps.obs, -2)
-  
   ## Detection
   alpha0 ~ dnorm(0, 0.1)
   
+  ## Contrasts for the factor effects on detection
   alpha_eff[1] <- 0
   for(e in 2:nEff){
     alpha_eff[e] ~ dnorm(0, 0.1)
@@ -79,6 +73,7 @@ fw_nmix <- nimbleCode({
     alpha_snow[g] ~ dnorm(0, 0.1)
   }
   
+  ## Diffuse normal priors on tmin and prcp (continuous)
   alpha_tmin ~ dnorm(0, 0.1)
   alpha_prcp ~ dnorm(0, 0.1)
   
@@ -97,7 +92,6 @@ fw_nmix <- nimbleCode({
       alpha_snow[snow[v]] +
       alpha_tmin * tmin_sc[v] + 
       alpha_prcp * prcp_sc[v]
-      #eps.obs[siteyr_ind[v]]
   }
 }
 )
@@ -123,13 +117,6 @@ fw_nmix_t <- nimbleCode({
   sd.eps.loc ~ dunif(0, 2)
   tau.eps.loc <- pow(sd.eps.loc, -2)
   
-  ## Site-level obs raneff
-  # for(t in 1:nSiteYr){
-  #   eps.obs[t] ~ dnorm(0, tau.eps.obs)
-  # }
-  # sd.eps.obs ~ dunif(0, 2)
-  # tau.eps.obs <- pow(sd.eps.obs, -2)
-  
   ## Detection
   alpha0 ~ dnorm(0, 0.1)
   
@@ -143,12 +130,15 @@ fw_nmix_t <- nimbleCode({
     alpha_snow[g] ~ dnorm(0, 0.1)
   }
   
+  alpha_tmin ~ dnorm(0, 0.1)
+  alpha_prcp ~ dnorm(0, 0.1)
+  
   ###### Likelihood ######
   ## Abundance
-  for(i in 1:nSiteYr){
+  for(i in 1:nSite){
     for(t in 1:nYear){
-    N[i,t] ~ dpois(lambda[i,t])
-    log(lambda[i,t]) <- beta0 + beta1 * year[i] + eps.loc[site_ind[i]]
+      N[i,t] ~ dpois(lambda[i,t])
+      log(lambda[i,t]) <- beta0 + beta1 * year[t] + eps.loc[site_ind[i]]
     }
   }
   
@@ -160,9 +150,8 @@ fw_nmix_t <- nimbleCode({
     logit(p_obs[v]) <- alpha0 +
       alpha_eff[eff[v]] +
       alpha_snow[snow[v]] 
-    #alpha[1] * tmin[v] + 
-    #alpha[2] * prcp[v] +
-    #eps.obs[siteyr_ind[v]]
+      alpha_tmin * tmin[v] + 
+      alpha_prcp * prcp[v] 
   }
   
   ## Derived parameters
